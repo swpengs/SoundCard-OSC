@@ -362,8 +362,9 @@ def frame_gen():
             pathlist, last_point = last_point.snake(direction)
 
             for point_i in range(len(pathlist) - 1):
-                # 虛線
-                if linestyle.lower().startswith('d'):
+                # 虛線，新增：只有在x不動的時候才劃虛線（即短邊才劃虛線）
+                if linestyle.lower().startswith('d') and pathlist[point_i].x_i == pathlist[point_i + 1].x_i:
+                    result.append('(---dashed line---)')
                     segment_list = pathlist[point_i].route(pathlist[point_i + 1])
                     for segment_i in range(len(segment_list) - 1):
                         #result.append('(---up---)')
@@ -372,6 +373,8 @@ def frame_gen():
                         result.append("G01 Z0.000 F%d" % int(F508))
                         result.append(dashed_rear.gcode(feedrate = feedrate))
                         result.append("G01 Z-%.4f F%d" % (Z, int(F254)))
+                else:
+                    result.append('(---solid line---)')
 
                 # 終點，不管虛線實線都要
                 #result.append('(---single---)')
@@ -401,7 +404,9 @@ def replace_feedrate(gcode):
 
 def run(para1, para2):
     global x_count, y_count
+    # 目前x是長邊，每個約47mm
     x_count = para1
+    # 目前y是短邊，每個約21mm
     y_count = para2
 
     print '(0) Readfile'
